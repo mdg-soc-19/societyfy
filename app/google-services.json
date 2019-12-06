@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "762268785095",
+    "firebase_url": "https://societyfy.firebaseio.com",
+    "project_id": "societyfy",
+    "storage_bucket": "societyfy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:762268785095:android:9d01be756a90d2b67e61e2",
+        "android_client_info": {
+          "package_name": "com.example.societyfy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "762268785095-jco8lkf0p3o8r8o978clmjeria2l6vd9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0hj8HgCZQIFu3MCKO7E-4rrxTgdoI-SU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "762268785095-jco8lkf0p3o8r8o978clmjeria2l6vd9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
