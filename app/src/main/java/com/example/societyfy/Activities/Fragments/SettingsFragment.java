@@ -1,106 +1,352 @@
 package com.example.societyfy.Activities.Fragments;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.societyfy.Activities.LoginFragment;
+import com.example.societyfy.Activities.MainActivity;
+import com.example.societyfy.Activities.PermissionFragment;
 import com.example.societyfy.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SettingsFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SettingsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+
+
 public class SettingsFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private View v;
+    private ExpandableListView information;
+    private String[] groups;
+    private String[][] children;
+    EditText email , password , reason;
+    Button mail_update , password_update, delete_account;
+    FirebaseAuth mAuth;
+    FirebaseUser currentUser;
+    ProgressBar setting_pro;
+    public SharedPreferences preferences;
+    public SharedPreferences.Editor  editor;
 
-    private OnFragmentInteractionListener mListener;
 
     public SettingsFragment() {
-        // Required empty public constructor
+
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SettingsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static SettingsFragment newInstance(String param1, String param2) {
-        SettingsFragment fragment = new SettingsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+
+        groups = new String[]{"About Societyfy"};
+
+        children = new String[][]{
+                {"Created by Jitesh Jain." , "Aimed at providing people the opportunity to meet others with similar interests near them." , "Important contributions from Arnesh Agrawal and Prateek Sachan."},
+        };
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        v = inflater.inflate(R.layout.fragment_settings, container, false);
+
+        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
+        editor = preferences.edit();
+
+
+
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
+        email = v.findViewById(R.id.new_email);
+        password = v.findViewById(R.id.new_pwd);
+        reason = v.findViewById(R.id.reason);
+        mail_update = v.findViewById(R.id.update_email);
+        password_update = v.findViewById(R.id.update_pwd);
+        delete_account = v.findViewById(R.id.delete_account);
+        setting_pro = v.findViewById(R.id.setting);
+
+        setting_pro.setVisibility(View.INVISIBLE);
+
+        mail_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                setting_pro.setVisibility(View.VISIBLE);
+
+                final String mail = email.getText().toString();
+                String EMAIL = currentUser.getEmail();
+                String PASSWORD = preferences.getString("password","NO");
+
+                if(!mail.isEmpty()){
+
+                    assert EMAIL != null;
+                    AuthCredential credential = EmailAuthProvider
+                            .getCredential(EMAIL, PASSWORD); // Current Login Credentials \\
+                    // Prompt the user to re-provide their sign-in credentials
+                    currentUser.reauthenticate(credential)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+
+                                        FirebaseAuth.getInstance().getCurrentUser().updateEmail(mail)
+                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()) {
+                                                            showMessage("Email updated");
+                                                            updateUI();
+                                                            setting_pro.setVisibility(View.INVISIBLE);
+                                                        } else {
+                                                            showMessage("Unsuccessful");
+                                                            setting_pro.setVisibility(View.INVISIBLE);
+                                                        }
+                                                    }
+                                                });
+                                        //----------------------------------------------------------\\
+                                    }
+                            });
+
+                }
+
+            }
+        });
+
+        password_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                setting_pro.setVisibility(View.VISIBLE);
+
+                final String pwd = password.getText().toString();
+                String EMAIL = currentUser.getEmail();
+                String PASSWORD = preferences.getString("password","NO");
+
+                if(!pwd.isEmpty()){
+
+                    assert EMAIL != null;
+                    AuthCredential credential = EmailAuthProvider
+                            .getCredential(EMAIL, PASSWORD); // Current Login Credentials \\
+                    // Prompt the user to re-provide their sign-in credentials
+                    currentUser.reauthenticate(credential)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    //Now change your email address \\
+                                    //----------------Code for Changing Email Address----------\\
+                                    FirebaseAuth.getInstance().getCurrentUser().updatePassword(pwd)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        editor.putString("password",pwd);
+                                                        editor.apply();
+                                                        showMessage("Password updated");
+                                                        updateUI();
+                                                        setting_pro.setVisibility(View.INVISIBLE);
+                                                    }
+                                                    else{
+                                                        showMessage("Unsuccessful");
+                                                        setting_pro.setVisibility(View.INVISIBLE);
+                                                    }
+                                                }
+                                            });
+                                    //----------------------------------------------------------\\
+                                }
+                            });
+
+                }
+
+            }
+        });
+
+        delete_account.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String EMAIL = currentUser.getEmail();
+                setting_pro.setVisibility(View.VISIBLE);
+                String PASSWORD = preferences.getString("password","NO");
+
+
+                assert EMAIL != null;
+                AuthCredential credential = EmailAuthProvider
+                            .getCredential(EMAIL, PASSWORD); // Current Login Credentials \\
+                    // Prompt the user to re-provide their sign-in credentials
+                    currentUser.reauthenticate(credential)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    //Now change your email address \\
+                                    //----------------Code for Changing Email Address----------\\
+                                    FirebaseAuth.getInstance().getCurrentUser().delete()
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+                                                        showMessage("Account deleted");
+                                                        updateUI();
+                                                        setting_pro.setVisibility(View.INVISIBLE);
+
+                                                    }
+                                                    else{
+                                                        showMessage("Unsuccessful");
+                                                        setting_pro.setVisibility(View.INVISIBLE);
+                                                    }
+                                                }
+                                            });
+                                    //----------------------------------------------------------\\
+                                }
+                            });
+
+                }
+
+
+        });
+
+
+
+        return v;
+    }
+
+    private void showMessage(String message) {
+
+        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+
+    }
+
+    private void updateUI() {
+        currentUser = null;
+     getActivity().finish();
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        information = (ExpandableListView) view.findViewById(R.id.Info);
+        information.setAdapter(new ExpandableListAdapter(groups, children));
+        information.setGroupIndicator(null);
+
+    }
+
+    public class ExpandableListAdapter extends BaseExpandableListAdapter {
+
+        private final LayoutInflater inf;
+        private String[] groups;
+        private String[][] children;
+
+        ExpandableListAdapter(String[] groups, String[][] children) {
+            this.groups = groups;
+            this.children = children;
+            inf = LayoutInflater.from(getActivity());
         }
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_settings, container, false);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+        @Override
+        public int getGroupCount() {
+            return groups.length;
         }
-    }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+        @Override
+        public int getChildrenCount(int groupPosition) {
+            return children[groupPosition].length;
+        }
 
-    }
+        @Override
+        public Object getGroup(int groupPosition) {
+            return groups[groupPosition];
+        }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
+        @Override
+        public Object getChild(int groupPosition, int childPosition) {
+            return children[groupPosition][childPosition];
+        }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        @Override
+        public long getGroupId(int groupPosition) {
+            return groupPosition;
+        }
+
+        @Override
+        public long getChildId(int groupPosition, int childPosition) {
+            return childPosition;
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
+        @Override
+        public View getChildView(int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+
+            ViewHolder holder;
+            if (convertView == null) {
+                convertView = inf.inflate(R.layout.infos, parent, false);
+                holder = new ViewHolder();
+
+                holder.text = (TextView) convertView.findViewById(R.id.infos);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            holder.text.setText(getChild(groupPosition, childPosition).toString());
+
+            return convertView;
+        }
+
+        @Override
+        public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+            ViewHolder holder;
+
+            if (convertView == null) {
+                convertView = inf.inflate(R.layout.list_grp, parent, false);
+
+                holder = new ViewHolder();
+                holder.text = (TextView) convertView.findViewById(R.id.list_parent);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            holder.text.setText(getGroup(groupPosition).toString());
+
+            return convertView;
+        }
+
+        @Override
+        public boolean isChildSelectable(int groupPosition, int childPosition) {
+            return true;
+        }
+
+        private class ViewHolder {
+            TextView text;
+        }
+
     }
 }

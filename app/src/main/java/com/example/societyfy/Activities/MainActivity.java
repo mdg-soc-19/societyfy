@@ -1,11 +1,7 @@
 package com.example.societyfy.Activities;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -26,15 +22,13 @@ import com.example.societyfy.Activities.Fragments.HomeFragment;
 import com.example.societyfy.Activities.Fragments.ProfileFragment;
 import com.example.societyfy.Activities.Fragments.SettingsFragment;
 import com.example.societyfy.R;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener{
 
-    FragmentManager fragmentManager;
+    public FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction;
     Fragment fragment;
     FirebaseAuth mAuth;
@@ -88,6 +82,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
             updateNavHeader();
 
+            getSupportActionBar().setTitle("Let's Societyfy");
+            fragment = new HomeFragment();
+            fragmentManager = getSupportFragmentManager();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment, fragment);
+            fragmentTransaction.commit();
+
 
         }
 
@@ -96,7 +97,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     private void login() {
         fragment = new LoginFragment();
-        fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment, fragment);
         fragmentTransaction.commit();
@@ -112,20 +112,14 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
          drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
-            finish();
+
+        }
+        else{
+            super.onBackPressed();
+            getSupportActionBar().setTitle("Let's Societyfy");
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -133,9 +127,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            getSupportActionBar().setTitle("Home");
+            getSupportActionBar().setTitle("Let's Societyfy");
             fragment = new HomeFragment();
-            fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
@@ -143,17 +136,17 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         } else if (id == R.id.nav_profile) {
             getSupportActionBar().setTitle("Profile");
             fragment = new ProfileFragment();
-            fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.fragment, fragment);
+            fragmentTransaction.replace(R.id.fragment, fragment);
+            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
 
         } else if (id == R.id.nav_settings) {
             getSupportActionBar().setTitle("Settings");
             fragment = new SettingsFragment();
-            fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, fragment);
+            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
 
 
@@ -162,13 +155,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             FirebaseAuth.getInstance().signOut();
             currentUser = null;
             fragment = new LoginFragment();
-            fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
             getSupportActionBar().hide();
             drawer.setDrawerLockMode (DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-
 
         }
 
