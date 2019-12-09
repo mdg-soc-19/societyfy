@@ -3,6 +3,7 @@ package com.example.societyfy.Activities;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -35,6 +36,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.Objects;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class RegisterFragment extends Fragment {
@@ -42,13 +45,15 @@ public class RegisterFragment extends Fragment {
     CircleImageView ImgUserPhoto;
     static int PReqCode=1;
     static int RequesCode=1;
-    Uri pickedImgUri;
+    public Uri pickedImgUri;
 
     private EditText userMail,userPassword,userName;
     private ProgressBar loadingProgress;
     private Button regBtn;
 
     private FirebaseAuth mAuth;
+    public SharedPreferences preferences;
+    public SharedPreferences.Editor  editor;
 
 
     @Override
@@ -68,6 +73,7 @@ public class RegisterFragment extends Fragment {
         loadingProgress.setVisibility(View.INVISIBLE);
         mAuth=  FirebaseAuth.getInstance();
 
+
         regBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,6 +83,11 @@ public class RegisterFragment extends Fragment {
                 final String mail = userMail.getText().toString();
                 final String password = userPassword.getText().toString();
                 final String name = userName.getText().toString();
+                preferences = Objects.requireNonNull(getContext()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
+                editor = preferences.edit();
+                editor.putString("password", userPassword.getText().toString());
+                editor.commit();
+
 
 
                 if (mail.isEmpty() || name.isEmpty() || password.isEmpty()) {
@@ -114,7 +125,7 @@ public class RegisterFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
-                    showMessage("Account created");
+                    showMessage("Account created. Please DON'T CLOSE THE APP");
                     update(name,pickedImgUri,mAuth.getCurrentUser());
                 }
                 else{
