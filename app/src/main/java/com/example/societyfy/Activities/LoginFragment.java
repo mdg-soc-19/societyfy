@@ -2,6 +2,7 @@ package com.example.societyfy.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -34,6 +35,9 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -46,6 +50,9 @@ public class LoginFragment extends Fragment {
     private ProgressBar loginProgress;
     private FirebaseAuth mAuth;
     private CircleImageView loginPhoto;
+    public SharedPreferences  preferences;
+    public SharedPreferences.Editor  editor;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,6 +68,10 @@ public class LoginFragment extends Fragment {
         loginProgress=v.findViewById(R.id.login_progress);
         mAuth=FirebaseAuth.getInstance();
         loginPhoto = v.findViewById(R.id.login_photo);
+
+
+
+
 
         loginPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,6 +94,12 @@ public class LoginFragment extends Fragment {
                 loginProgress.setVisibility(View.VISIBLE);
                 String mail = userMail.getText().toString();
                 String password = userPassword.getText().toString();
+                preferences = Objects.requireNonNull(getContext()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
+                editor = preferences.edit();
+                editor.putString("password", userPassword.getText().toString());
+                editor.commit();
+                editor.apply();
+
 
                 if (mail.isEmpty() || password.isEmpty()) {
                     showMessage("Please Verify all fields");
@@ -91,6 +108,7 @@ public class LoginFragment extends Fragment {
 
                 } else {
                     signIn(mail, password);
+
                 }
 
             }
@@ -136,7 +154,6 @@ public class LoginFragment extends Fragment {
 
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fragment, new PermissionFragment());
-        fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 
