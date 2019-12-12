@@ -1,16 +1,27 @@
 package com.example.societyfy.Activities;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -21,19 +32,26 @@ import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.Fragments.HomeFragment;
 import com.example.societyfy.Activities.Fragments.ProfileFragment;
 import com.example.societyfy.Activities.Fragments.SettingsFragment;
+import com.example.societyfy.Activities.Fragments.UserListFragment;
 import com.example.societyfy.R;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener{
+import static com.example.societyfy.Activities.Constants.ERROR_DIALOG_REQUEST;
+import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
+import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+
+public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener {
 
     public FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction;
     Fragment fragment;
     FirebaseAuth mAuth;
     FirebaseUser currentUser;
-    DrawerLayout drawer ;
+    DrawerLayout drawer;
 
 
     @Override
@@ -44,7 +62,6 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
         drawer = findViewById(R.id.drawer_layout);
-
 
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
@@ -58,12 +75,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
             login();
             getSupportActionBar().hide();
-            drawer.setDrawerLockMode (DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        } else if(currentUser == null) {
+        } else if (currentUser == null) {
             login();
             getSupportActionBar().hide();
-            drawer.setDrawerLockMode (DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         } else {
             toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
@@ -109,12 +126,11 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
     @Override
     public void onBackPressed() {
-         drawer = findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
 
-        }
-        else{
+        } else {
             super.onBackPressed();
             getSupportActionBar().setTitle("Let's Societyfy");
         }
@@ -150,7 +166,16 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             fragmentTransaction.commit();
 
 
-        } else if(id == R.id.nav_sign_out){
+        } else if (id == R.id.nav_user_list) {
+            getSupportActionBar().setTitle("Users' List");
+            fragment = new UserListFragment();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment, fragment);
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+
+
+        } else if (id == R.id.nav_sign_out) {
 
             FirebaseAuth.getInstance().signOut();
             currentUser = null;
@@ -159,7 +184,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
             getSupportActionBar().hide();
-            drawer.setDrawerLockMode (DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         }
 
@@ -171,13 +196,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     }
 
 
-
-    public  void updateNavHeader(){
+    public void updateNavHeader() {
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
         TextView navUserName = headerView.findViewById(R.id.nav_username);
-        TextView navmail =  headerView.findViewById(R.id.nav_user_mail);
+        TextView navmail = headerView.findViewById(R.id.nav_user_mail);
         ImageView navUserPhoto = headerView.findViewById(R.id.nav_user_photo);
 
         navUserName.setText(currentUser.getDisplayName());
@@ -185,4 +209,5 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         Glide.with(getApplicationContext()).load(currentUser.getPhotoUrl()).into(navUserPhoto);
 
     }
+
 }

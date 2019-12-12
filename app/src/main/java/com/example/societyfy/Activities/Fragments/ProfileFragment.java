@@ -56,7 +56,6 @@ public class ProfileFragment extends Fragment {
     static int RequesCode=1;
     View v;
     Uri pickedImgUri;
-    private Bitmap oldDrawable;
 
 
 
@@ -78,7 +77,6 @@ public class ProfileFragment extends Fragment {
         profile_pro.setVisibility(View.INVISIBLE);
         update.setVisibility(View.INVISIBLE);
 
-        oldDrawable = ((BitmapDrawable) profile_pic.getDrawable()).getBitmap();
 
 
         profile_name.setText(currentUser.getDisplayName());
@@ -123,11 +121,6 @@ public class ProfileFragment extends Fragment {
         Intent galleryIntent=new Intent(Intent.ACTION_GET_CONTENT);
         galleryIntent.setType("image/*");
         startActivityForResult(galleryIntent,RequesCode);
-        if (oldDrawable == oldDrawable) {
-            update.setVisibility(View.INVISIBLE);
-        }else{
-            update.setVisibility(View.VISIBLE);
-        }
     }
 
     private void showMessage(String message) {
@@ -190,6 +183,7 @@ public class ProfileFragment extends Fragment {
         if(resultCode==-1 && requestCode==RequesCode && data!=null){
             pickedImgUri = data.getData();
             profile_pic.setImageURI(pickedImgUri);
+            update.setVisibility(View.VISIBLE);
 
         }
     }
