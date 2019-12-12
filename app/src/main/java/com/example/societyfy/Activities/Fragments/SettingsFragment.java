@@ -209,7 +209,7 @@ public class SettingsFragment extends Fragment {
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
                                                         showMessage("Account deleted");
-                                                        updateUI();
+                                                        getActivity().finish();
                                                         setting_pro.setVisibility(View.INVISIBLE);
 
                                                     }

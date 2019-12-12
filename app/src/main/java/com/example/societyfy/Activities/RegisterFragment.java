@@ -8,14 +8,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,18 +16,33 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.example.societyfy.Activities.models.User;
 import com.example.societyfy.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -52,6 +59,8 @@ public class RegisterFragment extends Fragment {
     private Button regBtn;
 
     private FirebaseAuth mAuth;
+    private FirebaseFirestore mFirestore;
+
     public SharedPreferences preferences;
     public SharedPreferences.Editor  editor;
 
@@ -72,6 +81,7 @@ public class RegisterFragment extends Fragment {
 
         loadingProgress.setVisibility(View.INVISIBLE);
         mAuth=  FirebaseAuth.getInstance();
+        mFirestore=FirebaseFirestore.getInstance();
 
 
         regBtn.setOnClickListener(new View.OnClickListener() {
@@ -83,6 +93,8 @@ public class RegisterFragment extends Fragment {
                 final String mail = userMail.getText().toString();
                 final String password = userPassword.getText().toString();
                 final String name = userName.getText().toString();
+
+
                 preferences = Objects.requireNonNull(getContext()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
                 editor = preferences.edit();
                 editor.putString("password", userPassword.getText().toString());
@@ -97,7 +109,14 @@ public class RegisterFragment extends Fragment {
                 }
                 else {
 
-                    CreateUserAccount(mail,password,name);
+                    if(pickedImgUri!=null){
+
+                    CreateUserAccount(mail,password,name);}
+                    else{
+                        showMessage("Please choose an image") ;
+                        loadingProgress.setVisibility(View.INVISIBLE);
+                        regBtn.setVisibility(View.VISIBLE);
+                    }
 
                 }
             }
@@ -116,17 +135,25 @@ public class RegisterFragment extends Fragment {
             }
         });
 
+
+
         return v;
     }
 
-    private void CreateUserAccount(String uid, String pwd, final String name) {
+    private void CreateUserAccount(final String uid, String pwd, final String name) {
 
         mAuth.createUserWithEmailAndPassword(uid,pwd).addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
-                    showMessage("Account created. Please DON'T CLOSE THE APP");
+
+
+
+                    showMessage("Account creation may take a few seconds. " +
+                            "Please DON'T close the app");
                     update(name,pickedImgUri,mAuth.getCurrentUser());
+
+
                 }
                 else{
                     showMessage("Account creation failed");
@@ -138,39 +165,71 @@ public class RegisterFragment extends Fragment {
 
     }
 
-    private void update(final String name, Uri pickedImgUri, final FirebaseUser currentUser) {
+    private void update(final String name, final Uri pickedImgUri, final FirebaseUser currentUser) {
 
-        StorageReference mStorage = FirebaseStorage.getInstance().getReference().child("users_photos");
-        final StorageReference imageFilePath = mStorage.child(pickedImgUri.getLastPathSegment());
-        imageFilePath.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+        if (pickedImgUri != null) {
 
-                imageFilePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(name)
-                                .setPhotoUri(uri).build();
+            //insert some default data
+            User user = new User();
+            user.setEmail(userMail.getText().toString());
+            user.setName(userName.getText().toString());
+            user.setUser_id(FirebaseAuth.getInstance().getUid());
+            user.setImage(pickedImgUri.toString());
 
-                        currentUser.updateProfile(profileUpdate).addOnCompleteListener(new OnCompleteListener<Void>() {
+
+            DocumentReference newUserRef = mFirestore
+                    .collection("Users")
+                    .document(currentUser.getUid());
+
+           newUserRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+
+                    if (task.isSuccessful()) {
+
+                        StorageReference mStorage = FirebaseStorage.getInstance().getReference().child("users_photos");
+                        final StorageReference imageFilePath = mStorage.child(pickedImgUri.getLastPathSegment());
+                        imageFilePath.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
-                            public void onComplete(@NonNull Task<Void> task) {
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                                if(task.isSuccessful()){
-                                    showMessage("Registration Complete");
-                                    updateUI();
-                                }
+                                imageFilePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(name)
+                                                .setPhotoUri(uri).build();
+
+                                        currentUser.updateProfile(profileUpdate).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                if (task.isSuccessful()) {
+                                                    showMessage("Registration Complete");
+                                                    updateUI();
+                                                }
+
+
+                                            }
+                                        });
+                                    }
+                                });
 
 
                             }
                         });
+
+                    } else {
+                        Toast.makeText(getContext(), "Database failed", Toast.LENGTH_LONG).show();
                     }
-                });
+                }
+            });
 
 
-            }
-        });
 
+        }else {  showMessage("Please choose an image") ;
+        loadingProgress.setVisibility(View.INVISIBLE);
+        regBtn.setVisibility(View.VISIBLE);
+        }
     }
 
     private void updateUI() {
