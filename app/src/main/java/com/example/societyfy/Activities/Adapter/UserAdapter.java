@@ -17,7 +17,7 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class UserAdapter extends RecyclerView.Adapter {
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private Context mContext;
     private List<User> mUsers;
@@ -49,19 +49,19 @@ public class UserAdapter extends RecyclerView.Adapter {
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(mContext).inflate(R.layout.user_item,parent,false);
         return new UserAdapter.ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder item, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder item, int position) {
 
         User user = mUsers.get(position);
         item.name.setText(user.getName());
         item.mail.setText(user.getEmail());
         if(user.getImage().equals("default")){
-            item.profile_image.setimageResource(R.drawable.userpic);
+            item.profile_image.setImageResource(R.drawable.userpic);
         }else{
             Glide.with(mContext).load(user.getImage()).into(item.profile_image);
         }
