@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class RegisterFragment extends Fragment {
 
+
+
     CircleImageView ImgUserPhoto;
     static int PReqCode=1;
     static int RequesCode=1;
@@ -63,6 +66,9 @@ public class RegisterFragment extends Fragment {
 
     public SharedPreferences preferences;
     public SharedPreferences.Editor  editor;
+
+
+
 
 
     @Override
@@ -168,6 +174,8 @@ public class RegisterFragment extends Fragment {
     private void update(final String name, final Uri pickedImgUri, final FirebaseUser currentUser) {
 
         if (pickedImgUri != null) {
+
+
 
             //insert some default data
             User user = new User();

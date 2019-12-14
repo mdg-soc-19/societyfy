@@ -11,12 +11,13 @@ public class User implements Parcelable{
     private String user_id;
 
 
-    public User(String email, String user_id, String name, String image) {
+    public User(String email,String image,String name,String user_id) {
         this.email = email;
-        this.user_id = user_id;
-        this.name = name;
         this.image = image;
+        this.name = name;
+        this.user_id = user_id;
     }
+
 
     public User() {
 

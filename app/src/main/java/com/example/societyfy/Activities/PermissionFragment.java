@@ -62,9 +62,9 @@ public class PermissionFragment extends Fragment {
 
     private void updateUI() {
 
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragment, new LocationFragment());
-        fragmentTransaction.commit();
+
+        final Intent i = new Intent(getActivity(), MainActivity.class);
+        startActivity(i);
     }
 
 
