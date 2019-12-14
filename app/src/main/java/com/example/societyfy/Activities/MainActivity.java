@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +46,10 @@ import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ACC
 import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener {
+
+    private static final String CURRENT_USER_KEY = "CURRENT_USER_KEY";
+    private static final String CURRENT_USER_NAME = "CURRENT_USER_NAME";
+    private static final String CURRENT_USER_IMAGE = "CURRENT_USER_IMAGE";
 
     public FragmentManager fragmentManager = getSupportFragmentManager();
     FragmentTransaction fragmentTransaction;
@@ -85,6 +90,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             toolbar = findViewById(R.id.toolbar);
             setSupportActionBar(toolbar);
 
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(CURRENT_USER_KEY, currentUser.getUid());
+            editor.putString(CURRENT_USER_NAME,currentUser.getDisplayName());
+            editor.putString(CURRENT_USER_IMAGE, String.valueOf(currentUser.getPhotoUrl()));
+            editor.apply();
+
 
             mAuth = FirebaseAuth.getInstance();
             currentUser = mAuth.getCurrentUser();
@@ -110,6 +122,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         }
 
     }
+
 
 
     private void login() {

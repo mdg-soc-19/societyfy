@@ -1,16 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.PlayFragment">
+    tools:context="com.example.societyfy.Activities.PlayFragment"
+    android:background="#ffd4d4">
 
-    <!-- TODO: Update blank fragment layout -->
+
     <TextView
-        android:paddingTop="100dp"
-        android:textAlignment="center"
+        android:id="@+id/xx"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Play" />
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="#07b892"
+        android:textStyle="italic"
+        android:fontFamily="sans-serif"
+        android:gravity="center"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp"
+        android:inputType="textCapWords"
+        android:text="Play ChatRoom!!!"
+        android:textAllCaps="true"
+        android:textAlignment="center"
+        android:textColor="#ffffff"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/message_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
-</LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="10dp"
+        android:id="@+id/chats"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/message_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.352"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/xx"
+        app:layout_constraintVertical_bias="0.391"
+        android:layout_marginBottom="20dp"/>
+
+    <ImageButton
+        android:id="@+id/send_message"
+        style="?android:borderlessButtonStyle"
+        android:layout_width="43dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:adjustViewBounds="true"
+        android:background="#13de09"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/message_text"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/baseline_send_white_24dp" />
+
+    <EditText
+        android:background="@drawable/profile_edit"
+        android:id="@+id/message_text"
+        android:layout_width="343dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/hint_message_text"
+        android:inputType="textMultiLine|textPersonName|textCapSentences"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/send_message"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

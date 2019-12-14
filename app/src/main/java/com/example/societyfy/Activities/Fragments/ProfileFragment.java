@@ -2,6 +2,7 @@ package com.example.societyfy.Activities.Fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -56,6 +58,8 @@ public class ProfileFragment extends Fragment {
     static int RequesCode=1;
     View v;
     Uri pickedImgUri;
+
+    private static final String CURRENT_USER_IMAGE = "CURRENT_USER_IMAGE";
 
 
 
@@ -166,9 +170,16 @@ public class ProfileFragment extends Fragment {
     }
     private void updateImage() {
         CircleImageView profile_pic = v.findViewById(R.id.profile_photo);
-
-
         Glide.with(this).load(currentUser.getPhotoUrl()).into(profile_pic);
+
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(CURRENT_USER_IMAGE, String.valueOf(currentUser.getPhotoUrl()));
+        editor.apply();
+
+
+
     }
 
     private void updateUI() {
