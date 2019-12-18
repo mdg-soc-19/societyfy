@@ -8,9 +8,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -93,12 +96,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
 
 
+
     @Override
     public void onClick(View v) {
 
         switch (v.getId()) {
 
             case R.id.study:
+
                 Toast.makeText(getContext(), "Let's Study", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new StudyFragment());
@@ -143,6 +148,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
         }
     }
+
+
 
     private boolean checkMapServices(){
         if(isServicesOK()){

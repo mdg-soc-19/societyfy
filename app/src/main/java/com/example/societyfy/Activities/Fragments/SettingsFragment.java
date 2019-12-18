@@ -29,11 +29,15 @@ import com.example.societyfy.Activities.MainActivity;
 import com.example.societyfy.Activities.PermissionFragment;
 import com.example.societyfy.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,17 +47,19 @@ import java.util.Objects;
 
 public class SettingsFragment extends Fragment {
 
+    private final String TAG = "DELETE";
+    public SharedPreferences preferences;
+    public SharedPreferences.Editor editor;
+    EditText email, password, reason;
+    Button mail_update, password_update, delete_account;
+    FirebaseAuth mAuth;
+    FirebaseUser currentUser;
+    ProgressBar setting_pro;
     private View v;
     private ExpandableListView information;
     private String[] groups;
     private String[][] children;
-    EditText email , password , reason;
-    Button mail_update , password_update, delete_account;
-    FirebaseAuth mAuth;
-    FirebaseUser currentUser;
-    ProgressBar setting_pro;
-    public SharedPreferences preferences;
-    public SharedPreferences.Editor  editor;
+    private FirebaseFirestore db;
 
 
     public SettingsFragment() {
@@ -66,7 +72,7 @@ public class SettingsFragment extends Fragment {
         groups = new String[]{"About Societyfy"};
 
         children = new String[][]{
-                {"Created by Jitesh Jain." , "Aimed at providing people the opportunity to meet others with similar interests near them." , "Important contributions from Arnesh Agrawal and Prateek Sachan."},
+                {"Created by Jitesh Jain.", "Aimed at providing people the opportunity to meet others with similar interests near them.", "Important contributions from Arnesh Agrawal and Prateek Sachan."},
         };
     }
 
@@ -74,10 +80,10 @@ public class SettingsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_settings, container, false);
 
-        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
+        preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("User_pref", Context.MODE_PRIVATE);
         editor = preferences.edit();
 
-
+        db = FirebaseFirestore.getInstance();
 
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
@@ -100,9 +106,9 @@ public class SettingsFragment extends Fragment {
 
                 final String mail = email.getText().toString();
                 String EMAIL = currentUser.getEmail();
-                String PASSWORD = preferences.getString("password","NO");
+                String PASSWORD = preferences.getString("password", "NO");
 
-                if(!mail.isEmpty()){
+                if (!mail.isEmpty()) {
 
                     assert EMAIL != null;
                     AuthCredential credential = EmailAuthProvider
@@ -113,22 +119,39 @@ public class SettingsFragment extends Fragment {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
 
-                                        FirebaseAuth.getInstance().getCurrentUser().updateEmail(mail)
-                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        if (task.isSuccessful()) {
-                                                            showMessage("Email updated");
-                                                            updateUI();
-                                                            setting_pro.setVisibility(View.INVISIBLE);
-                                                        } else {
-                                                            showMessage("Unsuccessful");
-                                                            setting_pro.setVisibility(View.INVISIBLE);
-                                                        }
+                                    FirebaseAuth.getInstance().getCurrentUser().updateEmail(mail)
+                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+
+                                                        DocumentReference Ref = db.collection("Users").document(currentUser.getUid());
+
+                                                        Ref.update("email", mail)
+                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                    @Override
+                                                                    public void onSuccess(Void aVoid) {
+                                                                        Log.d(TAG, "DocumentSnapshot successfully updated!");
+                                                                    }
+                                                                })
+                                                                .addOnFailureListener(new OnFailureListener() {
+                                                                    @Override
+                                                                    public void onFailure(@NonNull Exception e) {
+                                                                        Log.w(TAG, "Error updating document", e);
+                                                                    }
+                                                                });
+
+                                                        showMessage("Email updated");
+                                                        updateUI();
+                                                        setting_pro.setVisibility(View.INVISIBLE);
+                                                    } else {
+                                                        showMessage("Unsuccessful");
+                                                        setting_pro.setVisibility(View.INVISIBLE);
                                                     }
-                                                });
-                                        //----------------------------------------------------------\\
-                                    }
+                                                }
+                                            });
+                                    //----------------------------------------------------------\\
+                                }
                             });
 
                 }
@@ -144,9 +167,9 @@ public class SettingsFragment extends Fragment {
 
                 final String pwd = password.getText().toString();
                 String EMAIL = currentUser.getEmail();
-                String PASSWORD = preferences.getString("password","NO");
+                String PASSWORD = preferences.getString("password", "NO");
 
-                if(!pwd.isEmpty()){
+                if (!pwd.isEmpty()) {
 
                     assert EMAIL != null;
                     AuthCredential credential = EmailAuthProvider
@@ -163,13 +186,12 @@ public class SettingsFragment extends Fragment {
                                                 @Override
                                                 public void onComplete(@NonNull Task<Void> task) {
                                                     if (task.isSuccessful()) {
-                                                        editor.putString("password",pwd);
+                                                        editor.putString("password", pwd);
                                                         editor.apply();
                                                         showMessage("Password updated");
                                                         updateUI();
                                                         setting_pro.setVisibility(View.INVISIBLE);
-                                                    }
-                                                    else{
+                                                    } else {
                                                         showMessage("Unsuccessful");
                                                         setting_pro.setVisibility(View.INVISIBLE);
                                                     }
@@ -190,44 +212,59 @@ public class SettingsFragment extends Fragment {
 
                 String EMAIL = currentUser.getEmail();
                 setting_pro.setVisibility(View.VISIBLE);
-                String PASSWORD = preferences.getString("password","NO");
+                String PASSWORD = preferences.getString("password", "NO");
 
 
                 assert EMAIL != null;
                 AuthCredential credential = EmailAuthProvider
-                            .getCredential(EMAIL, PASSWORD); // Current Login Credentials \\
-                    // Prompt the user to re-provide their sign-in credentials
-                    currentUser.reauthenticate(credential)
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    //Now change your email address \\
-                                    //----------------Code for Changing Email Address----------\\
-                                    FirebaseAuth.getInstance().getCurrentUser().delete()
-                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Void> task) {
-                                                    if (task.isSuccessful()) {
-                                                        showMessage("Account deleted");
-                                                        getActivity().finish();
-                                                        setting_pro.setVisibility(View.INVISIBLE);
+                        .getCredential(EMAIL, PASSWORD); // Current Login Credentials \\
+                // Prompt the user to re-provide their sign-in credentials
+                currentUser.reauthenticate(credential)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                //Now change your email address \\
+                                //----------------Code for Changing Email Address----------\\
+                                FirebaseAuth.getInstance().getCurrentUser().delete()
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
 
-                                                    }
-                                                    else{
-                                                        showMessage("Unsuccessful");
-                                                        setting_pro.setVisibility(View.INVISIBLE);
-                                                    }
+                                                    db.collection("Users").document(currentUser.getUid())
+                                                            .delete()
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void aVoid) {
+                                                                    Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                                                                }
+                                                            })
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    Log.w(TAG, "Error deleting document", e);
+                                                                }
+                                                            });
+
+
+                                                    showMessage("Account deleted");
+                                                    getActivity().finish();
+                                                    setting_pro.setVisibility(View.INVISIBLE);
+
+                                                } else {
+                                                    showMessage("Unsuccessful");
+                                                    setting_pro.setVisibility(View.INVISIBLE);
                                                 }
-                                            });
-                                    //----------------------------------------------------------\\
-                                }
-                            });
+                                            }
+                                        });
+                                //----------------------------------------------------------\\
+                            }
+                        });
 
-                }
+            }
 
 
         });
-
 
 
         return v;
@@ -241,7 +278,7 @@ public class SettingsFragment extends Fragment {
 
     private void updateUI() {
         currentUser = null;
-     getActivity().finish();
+        getActivity().finish();
     }
 
     @Override

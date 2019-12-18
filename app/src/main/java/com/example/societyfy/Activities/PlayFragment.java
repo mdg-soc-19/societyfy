@@ -5,13 +5,17 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -19,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.societyfy.Activities.Adapters.ChatsAdapter;
+import com.example.societyfy.Activities.Fragments.UserListFragment;
 import com.example.societyfy.Activities.models.Chat;
 import com.example.societyfy.Activities.models.UserRepo;
 import com.example.societyfy.R;
@@ -43,6 +48,7 @@ public class PlayFragment extends Fragment {
     private RecyclerView chats;
     private ChatsAdapter adapter;
 
+    FragmentTransaction fragmentTransaction;
     private String userId = "";
     private String username="";
     private String userImage="";
@@ -64,7 +70,7 @@ public class PlayFragment extends Fragment {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_play, container, false);
 
-
+        setHasOptionsMenu(true);
         userRepo = new UserRepo(FirebaseFirestore.getInstance());
 
 
@@ -80,6 +86,36 @@ public class PlayFragment extends Fragment {
 
 
         return v;
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.setting_menu).setVisible(false).setEnabled(false);
+        menu.findItem(R.id.study_users).setVisible(true).setEnabled(true);
+        menu.findItem(R.id.chat_study).setVisible(true).setEnabled(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        int id = item.getItemId();
+
+        switch(id) {
+
+            case R.id.chat_study:
+                fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.fragment, new PlayFragment());
+                fragmentTransaction.commit();
+                break;
+
+            case R.id.study_users:
+                fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.fragment, new UserListFragment());
+                fragmentTransaction.commit();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private String getCurrentUserKey() {

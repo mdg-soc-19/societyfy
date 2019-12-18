@@ -1,14 +1,17 @@
 package com.example.societyfy.Activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +29,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.societyfy.Activities.models.User;
 import com.example.societyfy.R;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,6 +46,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -63,9 +70,11 @@ public class RegisterFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
+    private StorageReference mStorage;
 
     public SharedPreferences preferences;
     public SharedPreferences.Editor  editor;
+    public static String Url;
 
 
 
@@ -88,6 +97,7 @@ public class RegisterFragment extends Fragment {
         loadingProgress.setVisibility(View.INVISIBLE);
         mAuth=  FirebaseAuth.getInstance();
         mFirestore=FirebaseFirestore.getInstance();
+        mStorage = FirebaseStorage.getInstance().getReference();
 
 
         regBtn.setOnClickListener(new View.OnClickListener() {
@@ -104,7 +114,7 @@ public class RegisterFragment extends Fragment {
                 preferences = Objects.requireNonNull(getContext()).getSharedPreferences("User_pref",Context.MODE_PRIVATE);
                 editor = preferences.edit();
                 editor.putString("password", userPassword.getText().toString());
-                editor.commit();
+                editor.apply();
 
 
 
@@ -162,7 +172,7 @@ public class RegisterFragment extends Fragment {
 
                 }
                 else{
-                    showMessage("Account creation failed");
+                    showMessage("Account creation failed. Change your e-mail id please.");
                     regBtn.setVisibility(View.VISIBLE);
                     loadingProgress.setVisibility(View.INVISIBLE);
                 }
@@ -175,14 +185,16 @@ public class RegisterFragment extends Fragment {
 
         if (pickedImgUri != null) {
 
-
+            StorageReference fileReference = mStorage.child("images/" + currentUser.getUid());
+            fileReference.putFile(pickedImgUri);
+            Url =  fileReference.getDownloadUrl().toString();
 
             //insert some default data
             User user = new User();
             user.setEmail(userMail.getText().toString());
             user.setName(userName.getText().toString());
             user.setUser_id(FirebaseAuth.getInstance().getUid());
-            user.setImage(pickedImgUri.toString());
+            user.setImage(Url);
 
 
             DocumentReference newUserRef = mFirestore
@@ -285,6 +297,11 @@ public class RegisterFragment extends Fragment {
 
         }
     }
+
+
+
+
+
 
 
 }
