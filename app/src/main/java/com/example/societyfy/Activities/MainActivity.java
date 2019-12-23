@@ -1,5 +1,6 @@
 package com.example.societyfy.Activities;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -33,16 +34,34 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
+import com.example.societyfy.Activities.Adapters.UserAdapter;
 import com.example.societyfy.Activities.Fragments.HomeFragment;
 import com.example.societyfy.Activities.Fragments.ProfileFragment;
 import com.example.societyfy.Activities.Fragments.SettingsFragment;
 import com.example.societyfy.Activities.Fragments.UserListFragment;
+import com.example.societyfy.Activities.Services.LocationService;
+import com.example.societyfy.Activities.models.User;
+import com.example.societyfy.Activities.models.UserLocation;
+import com.example.societyfy.Activities.models.UserRepo;
 import com.example.societyfy.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static com.example.societyfy.Activities.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
@@ -60,6 +79,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     FirebaseAuth mAuth;
     FirebaseUser currentUser;
     DrawerLayout drawer;
+    FirebaseFirestore mDb;
+    private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
+    private UserRepo userRepo;
 
 
     @Override
@@ -71,13 +93,15 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         currentUser = mAuth.getCurrentUser();
         drawer = findViewById(R.id.drawer_layout);
 
+        userRepo = new UserRepo(FirebaseFirestore.getInstance());
+        mDb = FirebaseFirestore.getInstance();
 
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         boolean firstStart = prefs.getBoolean("firstStart", true);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        getUsers();
 
         if (firstStart) {
 
@@ -219,7 +243,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
 
         } else if (id == R.id.nav_user_list) {
             getSupportActionBar().setTitle("Users' List");
+
+
             fragment = new UserListFragment();
+            Bundle bundle = new Bundle();
+            bundle.putParcelableArrayList(getString(R.string.intent_user_locations), mUserLocations);
+            fragment.setArguments(bundle);
+
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.addToBackStack(null);
@@ -243,6 +273,47 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+
+    }
+
+
+    private void getUsers() {
+
+        userRepo.getUsers(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot snapshots, FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.e("UserList", "Listen failed.", e);
+                    return;
+                }
+                List<User> userList = new ArrayList<>();
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    userList.add(new User(doc.getString("email"), doc.getString("image"), doc.getString("name"), doc.getString("user_id")));
+                    User user = new User(doc.getString("email"), doc.getString("image"), doc.getString("name"), doc.getString("user_id"));
+                    getUserLocation(user);
+                }
+
+
+            }
+        });
+    }
+
+    private void getUserLocation(User user) {
+
+        DocumentReference locationRef = mDb.collection("Users' Locations").document(user.getUser_id());
+
+        locationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()){
+                    if(Objects.requireNonNull(task.getResult()).toObject(UserLocation.class)!= null){
+                        mUserLocations.add(task.getResult().toObject(UserLocation.class));
+                    }
+
+                }
+
+            }
+        });
 
     }
 

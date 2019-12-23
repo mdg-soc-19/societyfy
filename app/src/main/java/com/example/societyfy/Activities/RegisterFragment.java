@@ -46,7 +46,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -63,6 +62,7 @@ public class RegisterFragment extends Fragment {
     static int PReqCode=1;
     static int RequesCode=1;
     public Uri pickedImgUri;
+    public Uri downloadURL;
 
     private EditText userMail,userPassword,userName;
     private ProgressBar loadingProgress;
@@ -70,11 +70,12 @@ public class RegisterFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
-    private StorageReference mStorage;
+    private FirebaseStorage mStorage;
+    StorageReference storageReference;
 
     public SharedPreferences preferences;
     public SharedPreferences.Editor  editor;
-    public static String Url;
+    //public static String Url;
 
 
 
@@ -97,7 +98,9 @@ public class RegisterFragment extends Fragment {
         loadingProgress.setVisibility(View.INVISIBLE);
         mAuth=  FirebaseAuth.getInstance();
         mFirestore=FirebaseFirestore.getInstance();
-        mStorage = FirebaseStorage.getInstance().getReference();
+        mStorage = FirebaseStorage.getInstance();
+        storageReference = mStorage.getReference();
+
 
 
         regBtn.setOnClickListener(new View.OnClickListener() {
@@ -185,64 +188,82 @@ public class RegisterFragment extends Fragment {
 
         if (pickedImgUri != null) {
 
-            StorageReference fileReference = mStorage.child("images/" + currentUser.getUid());
-            fileReference.putFile(pickedImgUri);
-            Url =  fileReference.getDownloadUrl().toString();
-
-            //insert some default data
-            User user = new User();
-            user.setEmail(userMail.getText().toString());
-            user.setName(userName.getText().toString());
-            user.setUser_id(FirebaseAuth.getInstance().getUid());
-            user.setImage(Url);
-
-
-            DocumentReference newUserRef = mFirestore
-                    .collection("Users")
-                    .document(currentUser.getUid());
-
-           newUserRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            final StorageReference fileReference = storageReference.child("images/" + currentUser.getUid());
+            fileReference.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
-                public void onComplete(@NonNull Task<Void> task) {
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    showMessage("Upload Successful");
+                    fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            downloadURL = uri;
+                            Log.i("URL", uri.toString());
 
-                    if (task.isSuccessful()) {
 
-                        StorageReference mStorage = FirebaseStorage.getInstance().getReference().child("users_photos");
-                        final StorageReference imageFilePath = mStorage.child(pickedImgUri.getLastPathSegment());
-                        imageFilePath.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            //insert some default data
+                            User user = new User();
+                            user.setEmail(userMail.getText().toString());
+                            user.setName(userName.getText().toString());
+                            user.setUser_id(FirebaseAuth.getInstance().getUid());
+                            user.setImage(downloadURL.toString());
 
-                                imageFilePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                    @Override
-                                    public void onSuccess(Uri uri) {
-                                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(name)
-                                                .setPhotoUri(uri).build();
 
-                                        currentUser.updateProfile(profileUpdate).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            DocumentReference newUserRef = mFirestore
+                                    .collection("Users")
+                                    .document(currentUser.getUid());
+
+                            newUserRef.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+
+                                    if (task.isSuccessful()) {
+
+                                        StorageReference mStorage = FirebaseStorage.getInstance().getReference().child("users_photos");
+                                        final StorageReference imageFilePath = mStorage.child(pickedImgUri.getLastPathSegment());
+                                        imageFilePath.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                             @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
+                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                                                if (task.isSuccessful()) {
-                                                    showMessage("Registration Complete");
-                                                    updateUI();
-                                                }
+                                                imageFilePath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                    @Override
+                                                    public void onSuccess(Uri uri) {
+                                                        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(name)
+                                                                .setPhotoUri(uri).build();
+
+                                                        currentUser.updateProfile(profileUpdate).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+
+                                                                if (task.isSuccessful()) {
+                                                                    showMessage("Registration Complete");
+                                                                    updateUI();
+                                                                }
+
+
+                                                            }
+                                                        });
+                                                    }
+                                                });
 
 
                                             }
                                         });
+
+                                    } else {
+                                        Toast.makeText(getContext(), "Database failed", Toast.LENGTH_LONG).show();
                                     }
-                                });
-
-
-                            }
-                        });
-
-                    } else {
-                        Toast.makeText(getContext(), "Database failed", Toast.LENGTH_LONG).show();
-                    }
+                                }
+                            });
+                        }
+                    });
                 }
-            });
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    showMessage("FAILUREinURIobtain");
+                }
+
+                });
 
 
 
@@ -282,7 +303,8 @@ public class RegisterFragment extends Fragment {
 
             }
             else{
-                ActivityCompat.requestPermissions(getActivity(),new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},PReqCode); }
+                ActivityCompat.requestPermissions(getActivity(),new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},PReqCode);
+                checkAndRequestForPermission();}
         }
         else
             openGallery();

@@ -30,6 +30,38 @@ public class UserRepo {
                 .addSnapshotListener(listener);
     }
 
+    public void getStudyUsers(EventListener<QuerySnapshot> listener) {
+        db.collection("Study")
+                .orderBy("name")
+                .addSnapshotListener(listener);
+    }
+
+    public void getPlayUsers(EventListener<QuerySnapshot> listener) {
+        db.collection("Play")
+                .orderBy("name")
+                .addSnapshotListener(listener);
+    }
+
+    public void getFoodUsers(EventListener<QuerySnapshot> listener) {
+        db.collection("Food")
+                .orderBy("name")
+                .addSnapshotListener(listener);
+    }
+
+    public void getHangoutUsers(EventListener<QuerySnapshot> listener) {
+        db.collection("Hangout")
+                .orderBy("name")
+                .addSnapshotListener(listener);
+    }
+
+    public void getOtherUsers(EventListener<QuerySnapshot> listener) {
+        db.collection("Other")
+                .orderBy("name")
+                .addSnapshotListener(listener);
+    }
+
+
+
 
 
     public void addMessageToChatRoom(String roomName,
