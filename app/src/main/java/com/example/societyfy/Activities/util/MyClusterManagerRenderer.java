@@ -43,8 +43,7 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
 
     @Override
     protected void onBeforeClusterItemRendered(ClusterMarker item, MarkerOptions markerOptions) {
-        Uri uri = Uri.parse(item.getUser().getImage());
-        imageView.setImageURI(uri);
+        Glide.with(item.getContext()).load(item.getUser().getImage()).into(imageView);
 
         Bitmap icon = iconGenerator.makeIcon();
         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(item.getTitle());
