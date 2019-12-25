@@ -70,6 +70,7 @@
                 android:id="@+id/update_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="40dp"
                 android:background="@drawable/reg_btnstyle"
@@ -118,6 +119,7 @@
             <Button
                 android:id="@+id/update_pwd"
                 android:layout_width="wrap_content"
+                android:layout_marginRight="10dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="40dp"
@@ -168,6 +170,7 @@
                 android:id="@+id/delete_account"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="40dp"
                 android:background="@drawable/del_btn_style"
