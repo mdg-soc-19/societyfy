@@ -1,4 +1,4 @@
-package com.example.societyfy.Activities.Fragments;
+package com.example.societyfy.Activities;
 
 import android.Manifest;
 import android.animation.ObjectAnimator;
@@ -12,24 +12,26 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.Adapters.UserAdapter;
-import com.example.societyfy.Activities.ViewWeightAnimationWrapper;
+import com.example.societyfy.Activities.Fragments.HomeFragment;
+import com.example.societyfy.Activities.Fragments.UserListFragment;
 import com.example.societyfy.Activities.models.ClusterMarker;
 import com.example.societyfy.Activities.models.PolyLineData;
 import com.example.societyfy.Activities.models.User;
@@ -37,9 +39,6 @@ import com.example.societyfy.Activities.models.UserLocation;
 import com.example.societyfy.Activities.models.UserRepo;
 import com.example.societyfy.Activities.util.MyClusterManagerRenderer;
 import com.example.societyfy.R;
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -47,42 +46,28 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
-import com.google.maps.PendingResult;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.internal.PolylineEncoding;
-import com.google.maps.model.DirectionsResult;
-import com.google.maps.model.DirectionsRoute;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 import static com.example.societyfy.Activities.Constants.MAPVIEW_BUNDLE_KEY;
 
 
-public class UserListFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener,
-        GoogleMap.OnInfoWindowClickListener, UserAdapter.UserListRecyclerClickListener {
-
+public class Study_list extends Fragment implements OnMapReadyCallback, View.OnClickListener,
+        GoogleMap.OnInfoWindowClickListener, UserAdapter.UserListRecyclerClickListener{
     private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
     private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
     private int mMapLayoutState = 0;
@@ -118,8 +103,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
     private Marker mSelectedMarker = null;
     private ArrayList<Marker> mTripMarkers = new ArrayList<>();
-
-
+    FragmentTransaction fragmentTransaction;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -127,7 +111,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
         if (mUserLocations.size() == 0) { // make sure the list doesn't duplicate by navigating back
             if (getArguments() != null) {
 
-                final ArrayList<UserLocation> locations = getArguments().getParcelableArrayList(getString(R.string.intent_user_locations));
+                final ArrayList<UserLocation> locations = getArguments().getParcelableArrayList(getString(R.string.intent_suser_locations));
                 mUserLocations.addAll(locations);
             }
         }
@@ -137,18 +121,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        v = inflater.inflate(R.layout.fragment_user_list, container, false);
-
+        v = inflater.inflate(R.layout.fragment_study_list, container, false);
+        setHasOptionsMenu(true);
+        mUserListRecyclerView = v.findViewById(R.id.study_list);
+        userRepo = new UserRepo(FirebaseFirestore.getInstance());
         mMapView = (MapView) v.findViewById(R.id.map);
         mMapContainer = v.findViewById(R.id.map_container);
-        mUserListRecyclerView = v.findViewById(R.id.user_list);
         mDb = FirebaseFirestore.getInstance();
-
         v.findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
         v.findViewById(R.id.btn_reset_map).setOnClickListener(this);
-
-        userRepo = new UserRepo(FirebaseFirestore.getInstance());
-
 
 
         getUsers();
@@ -162,13 +143,48 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
             Log.d("Location", "onCreateView: geopoint: " + userLocation.getGeoPoint().getLatitude()
                     + " , " + userLocation.getGeoPoint().getLongitude());
         }
-
         return v;
+    }
+
+
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.setting_menu).setVisible(false).setEnabled(false);
+        menu.findItem(R.id.study_users).setVisible(true).setEnabled(false);
+        menu.findItem(R.id.chat_study).setVisible(true).setEnabled(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        int id = item.getItemId();
+
+        switch(id) {
+
+            case R.id.chat_study:
+                fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.replace(R.id.fragment, new StudyFragment());
+                fragmentTransaction.commit();
+                break;
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void initUI() {
+
+        userlist = v.findViewById(R.id.study_list);
+        adapter = new UserAdapter(userList, getActivity(),this);
+        userlist.setAdapter(adapter);
+        userlist.setLayoutManager(new LinearLayoutManager(getContext()));
+
     }
 
     private void getUsers() {
 
-        userRepo.getUsers(new EventListener<QuerySnapshot>() {
+        userRepo.getStudyUsers(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot snapshots, FirebaseFirestoreException e) {
                 if (e != null) {
@@ -181,21 +197,12 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
                     userList.add(new User(doc.getString("email"), doc.getString("image"), doc.getString("name"), doc.getString("user_id")));
                 }
 
-
             }
         });
     }
 
 
-    private void initUI() {
-
-        userlist = v.findViewById(R.id.user_list);
-        adapter = new UserAdapter(userList, getActivity(),this);
-        userlist.setAdapter(adapter);
-        userlist.setLayoutManager(new LinearLayoutManager(getContext()));
-
-    }
-
+    //Map Methods
 
     private void startUserLocationsRunnable() {
         Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
@@ -513,61 +520,61 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     @Override
     public void onInfoWindowClick(final Marker marker) {
 
-            if (marker.getSnippet().equals("This is you")) {
-                marker.hideInfoWindow();
-            } else {
+        if (marker.getSnippet().equals("This is you")) {
+            marker.hideInfoWindow();
+        } else {
 
-                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setMessage(marker.getSnippet())
-                        .setCancelable(true)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                mSelectedMarker = marker;
-                                dialog.dismiss();
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(marker.getSnippet())
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            mSelectedMarker = marker;
+                            dialog.dismiss();
 
-                                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                                builder.setMessage("Open Google Maps?")
-                                        .setCancelable(true)
-                                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                                String latitude = String.valueOf(marker.getPosition().latitude);
-                                                String longitude = String.valueOf(marker.getPosition().longitude);
-                                                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
-                                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                                                mapIntent.setPackage("com.google.android.apps.maps");
+                            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setMessage("Open Google Maps?")
+                                    .setCancelable(true)
+                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                            String latitude = String.valueOf(marker.getPosition().latitude);
+                                            String longitude = String.valueOf(marker.getPosition().longitude);
+                                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                            mapIntent.setPackage("com.google.android.apps.maps");
 
-                                                try{
-                                                    if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                                                        startActivity(mapIntent);
-                                                    }
-                                                }catch (NullPointerException e){
-                                                    Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
-                                                    Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                                            try{
+                                                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                                    startActivity(mapIntent);
                                                 }
-
+                                            }catch (NullPointerException e){
+                                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                                                Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
                                             }
-                                        })
-                                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                                final AlertDialog alert = builder.create();
-                                alert.show();
 
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                dialog.cancel();
-                            }
-                        });
-                final AlertDialog alert = builder.create();
-                alert.show();
-            }
+                                        }
+                                    })
+                                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                            final AlertDialog alert = builder.create();
+                            alert.show();
 
-
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.cancel();
+                        }
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
         }
+
+
+    }
 
     @Override
     public void onUserClicked(int position) {
@@ -587,4 +594,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
         }
 
     }
+
+
 }

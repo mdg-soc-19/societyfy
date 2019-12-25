@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">SOCIETYFY</string>
-    <string name="google_maps_api_key">AIzaSyDAzQLmTJcEkAfXKAkcadcjbW9k9sdYYpE</string>
+    <string name="google_maps_api_key">AIzaSyD-S4C5umBxAEwdLUA0u2BAQKYhM9I-0Dc</string>
     <string name="title_activity_home">Home</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -13,6 +13,14 @@
     <string name="error_empty_message">Please enter a message</string>
     <string name="error_message_failed">Failed to send your message</string>
 
+    <!-- Intent extras -->
+    <string name="intent_user_locations">intent_user_locations</string>
+    <string name="intent_suser_locations">intent_suser_locations</string>
+    <string name="intent_puser_locations">intent_puser_locations</string>
+    <string name="intent_ouser_locations">intent_ouser_locations</string>
+    <string name="intent_huser_locations">intent_huser_locations</string>
+    <string name="intent_fuser_locations">intent_fuser_locations</string>
+    <string name="intent_location">intent_location</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>

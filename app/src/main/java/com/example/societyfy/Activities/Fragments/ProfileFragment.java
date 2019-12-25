@@ -30,14 +30,18 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.MainActivity;
 import com.example.societyfy.Activities.PermissionFragment;
+import com.example.societyfy.Activities.models.User;
 import com.example.societyfy.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -48,6 +52,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ProfileFragment extends Fragment {
 
     CircleImageView profile_pic;
+    private final String TAG = "DELETE";
     TextView profile_name;
     TextView profile_mail;
     Button update;
@@ -58,6 +63,12 @@ public class ProfileFragment extends Fragment {
     static int RequesCode=1;
     View v;
     Uri pickedImgUri;
+    private FirebaseFirestore db;
+    public Uri downloadURL;
+    private FirebaseStorage mStorage;
+    StorageReference storageReference;
+
+
 
     private static final String CURRENT_USER_IMAGE = "CURRENT_USER_IMAGE";
 
@@ -73,6 +84,8 @@ public class ProfileFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
 
+        db = FirebaseFirestore.getInstance();
+
         profile_pic = v.findViewById(R.id.profile_photo);
         profile_name = v.findViewById(R.id.profile_name);
         profile_mail = v.findViewById(R.id.profile_user_mail);
@@ -80,6 +93,8 @@ public class ProfileFragment extends Fragment {
         profile_pro = v.findViewById(R.id.profile_progress);
         profile_pro.setVisibility(View.INVISIBLE);
         update.setVisibility(View.INVISIBLE);
+        mStorage = FirebaseStorage.getInstance();
+        storageReference = mStorage.getReference();
 
 
 
@@ -134,6 +149,39 @@ public class ProfileFragment extends Fragment {
     }
 
     private void update( final String name, Uri pickedImgUri, final FirebaseUser currentUser) {
+
+
+        final StorageReference fileReference = storageReference.child("images/" + currentUser.getUid());
+        fileReference.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                                     @Override
+                                                                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                                         showMessage("Upload Successful");
+                                                                         fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                                                             @Override
+                                                                             public void onSuccess(Uri uri) {
+                                                                                 downloadURL = uri;
+                                                                                 Log.i("URL", uri.toString());
+
+
+                                                                                 DocumentReference Ref = db.collection("Users").document(currentUser.getUid());
+
+                                                                                 Ref.update("image", downloadURL.toString())
+                                                                                         .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                                             @Override
+                                                                                             public void onSuccess(Void aVoid) {
+                                                                                                 Log.d(TAG, "DocumentSnapshot successfully updated!");
+                                                                                             }
+                                                                                         })
+                                                                                         .addOnFailureListener(new OnFailureListener() {
+                                                                                             @Override
+                                                                                             public void onFailure(@NonNull Exception e) {
+                                                                                                 Log.w(TAG, "Error updating document", e);
+                                                                                             }
+                                                                                         });
+                                                                             }
+                                                                         });
+                                                                     }
+                                                                 });
 
         StorageReference mStorage = FirebaseStorage.getInstance().getReference().child("users_photos");
         final StorageReference imageFilePath = mStorage.child(pickedImgUri.getLastPathSegment());
@@ -191,10 +239,12 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if(resultCode==-1 && requestCode==RequesCode && data!=null){
             pickedImgUri = data.getData();
             profile_pic.setImageURI(pickedImgUri);
             update.setVisibility(View.VISIBLE);
+
 
         }
     }

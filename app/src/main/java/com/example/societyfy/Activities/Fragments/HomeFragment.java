@@ -1,5 +1,6 @@
 package com.example.societyfy.Activities.Fragments;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -8,9 +9,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -24,10 +28,17 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.societyfy.Activities.FoodFragment;
 import com.example.societyfy.Activities.HangoutFragment;
+import com.example.societyfy.Activities.MainActivity;
 import com.example.societyfy.Activities.OtherFragment;
 import com.example.societyfy.Activities.PlayFragment;
+import com.example.societyfy.Activities.Services.LocationService;
 import com.example.societyfy.Activities.StudyFragment;
 import com.example.societyfy.Activities.UserClient;
+import com.example.societyfy.Activities.models.FoodUser;
+import com.example.societyfy.Activities.models.HangoutUser;
+import com.example.societyfy.Activities.models.OtherUser;
+import com.example.societyfy.Activities.models.PlayUser;
+import com.example.societyfy.Activities.models.StudyUser;
 import com.example.societyfy.Activities.models.User;
 import com.example.societyfy.Activities.models.UserLocation;
 import com.example.societyfy.R;
@@ -52,14 +63,14 @@ import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ENA
 
 public class HomeFragment extends Fragment implements View.OnClickListener {
 
-    CardView study;
-    CardView play;
-    CardView food;
-    CardView hangout;
-    CardView other;
-    FragmentTransaction fragmentTransaction;
-    final static String TAG = "MainActivity";
-    boolean mLocationPermissionGranted = false;
+    private final static String TAG = "MainActivity";
+    private CardView study;
+    private CardView play;
+    private CardView food;
+    private CardView hangout;
+    private CardView other;
+    private FragmentTransaction fragmentTransaction;
+    private boolean mLocationPermissionGranted = false;
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
@@ -86,11 +97,11 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         hangout.setOnClickListener(this);
         other.setOnClickListener(this);
 
+
         return v;
 
 
     }
-
 
 
     @Override
@@ -99,42 +110,172 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         switch (v.getId()) {
 
             case R.id.study:
+
+                DocumentReference userRef1 = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
+                userRef1.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User userS = Objects.requireNonNull(task.getResult()).toObject(User.class);
+
+                            DocumentReference joinStudy = mDb
+                                    .collection("Study")
+                                    .document(FirebaseAuth.getInstance().getUid());
+
+                            StudyUser studyUser = new StudyUser(userS.getEmail(), userS.getImage(), userS.getName(), userS.getUser_id());
+
+                            joinStudy.set(studyUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "added");
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
                 Toast.makeText(getContext(), "Let's Study", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new StudyFragment());
-                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
 
+
             case R.id.play:
+
+                DocumentReference userRef2 = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
+                userRef2.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User userP = Objects.requireNonNull(task.getResult()).toObject(User.class);
+
+                            DocumentReference joinPlay = mDb
+                                    .collection("Play")
+                                    .document(FirebaseAuth.getInstance().getUid());
+
+                            PlayUser playUser = new PlayUser(userP.getEmail(), userP.getImage(), userP.getName(), userP.getUser_id());
+
+                            joinPlay.set(playUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "added");
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+
                 Toast.makeText(getContext(), "Let's Play", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new PlayFragment());
-                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
 
             case R.id.food:
+
+                DocumentReference userRef3 = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
+                userRef3.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User userF = Objects.requireNonNull(task.getResult()).toObject(User.class);
+
+                            DocumentReference joinFood = mDb
+                                    .collection("Food")
+                                    .document(FirebaseAuth.getInstance().getUid());
+
+                            FoodUser foodUser = new FoodUser(userF.getEmail(), userF.getImage(), userF.getName(), userF.getUser_id());
+
+                            joinFood.set(foodUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "added");
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+
                 Toast.makeText(getContext(), "Let's Eat", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new FoodFragment());
-                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
 
             case R.id.hangout:
+
+                DocumentReference userRef4 = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
+                userRef4.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User userH = Objects.requireNonNull(task.getResult()).toObject(User.class);
+
+                            DocumentReference joinHangout = mDb
+                                    .collection("Hangout")
+                                    .document(FirebaseAuth.getInstance().getUid());
+
+                            HangoutUser hangoutUser = new HangoutUser(userH.getEmail(), userH.getImage(), userH.getName(), userH.getUser_id());
+
+                            joinHangout.set(hangoutUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "added");
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+
                 Toast.makeText(getContext(), "Let's Hangout", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new HangoutFragment());
-                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
 
             case R.id.other:
+
+                DocumentReference userRef5 = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
+                userRef5.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            User userO = Objects.requireNonNull(task.getResult()).toObject(User.class);
+
+                            DocumentReference joinOther = mDb
+                                    .collection("Other")
+                                    .document(FirebaseAuth.getInstance().getUid());
+
+                            OtherUser otherUser = new OtherUser(userO.getEmail(), userO.getImage(), userO.getName(), userO.getUser_id());
+
+                            joinOther.set(otherUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "added");
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+
                 Toast.makeText(getContext(), "Let's Try Out Something New", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, new OtherFragment());
-                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
                 break;
 
@@ -144,47 +285,72 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private boolean checkMapServices(){
-        if(isServicesOK()){
-            if(isMapsEnabled()){
+
+    private boolean checkMapServices() {
+        if (isServicesOK()) {
+            if (isMapsEnabled()) {
                 return true;
             }
         }
         return false;
     }
+    private void startLocationService(){
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(getContext(), LocationService.class);
+//        this.startService(serviceIntent);
 
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
 
-    private void getUserDetails(){
+                Objects.requireNonNull(getActivity()).startForegroundService(serviceIntent);
+            }else{
+                Objects.requireNonNull(getActivity()).startService(serviceIntent);
+            }
+        }
+    }
 
-        if(mUserLocation == null){
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.example.societyfy.Activities.Services".equals(service.service.getClassName())) {
+                Log.d("Service", "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d("Service", "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
+
+    private void getUserDetails() {
+
+        if (mUserLocation == null) {
             mUserLocation = new UserLocation();
 
             DocumentReference userRef = mDb.collection("Users").document(FirebaseAuth.getInstance().getUid());
             userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         User user = Objects.requireNonNull(task.getResult()).toObject(User.class);
-                        mUserLocation.setUser(user);
-                        ((UserClient) Objects.requireNonNull(getActivity().getApplicationContext())).setUser(user);
+                       mUserLocation.setUser(user);
+                        ((UserClient)(Objects.requireNonNull(getActivity()).getApplicationContext())).setUser(user);
                         getLastKnownLocation();
 
                     }
                 }
             });
-        }else {
+        } else {
             getLastKnownLocation();
         }
     }
 
-    private void saveUserLocation(){
+    private void saveUserLocation() {
 
-        if(mUserLocation != null){
+        if (mUserLocation != null) {
             DocumentReference locationRef = mDb.collection("Users' Locations").document(FirebaseAuth.getInstance().getUid());
             locationRef.set(mUserLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
-                    if(task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "latitude: " + mUserLocation.getGeoPoint().getLatitude());
                         Log.d(TAG, "longitude: " + mUserLocation.getGeoPoint().getLongitude());
                     }
@@ -194,20 +360,21 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     }
 
-    private void getLastKnownLocation(){
-        Log.d(TAG,"getLastKnownLocation : called");
+    private void getLastKnownLocation() {
+        Log.d(TAG, "getLastKnownLocation : called");
         mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Location location = task.getResult();
-                    if(location!=null) {
+                    if (location != null) {
                         Log.d(TAG, "OnComplete latitude: " + location.getLatitude());
                         Log.d(TAG, "OnComplete latitude: " + location.getLongitude());
-                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(),location.getLongitude());
+                        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
                         mUserLocation.setGeoPoint(geoPoint);
                         mUserLocation.setTimestamp(null);
                         saveUserLocation();
+                        startLocationService();
 
                     }
                 }
@@ -223,7 +390,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         if (checkMapServices()) {
             if (!mLocationPermissionGranted)
                 getLocationPermission();
-        }else{
+        } else {
             getUserDetails();
         }
 
@@ -285,7 +452,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             buildAlertMessageNoGps();
             return false;
         }
-            return true;
+        return true;
 
     }
 
@@ -333,6 +500,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
 
     }
+
+
 
 
 }
