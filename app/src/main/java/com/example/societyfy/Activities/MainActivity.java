@@ -67,7 +67,7 @@ import static com.example.societyfy.Activities.Constants.ERROR_DIALOG_REQUEST;
 import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static com.example.societyfy.Activities.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
-public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String CURRENT_USER_KEY = "CURRENT_USER_KEY";
     private static final String CURRENT_USER_NAME = "CURRENT_USER_NAME";
@@ -78,10 +78,12 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     Fragment fragment;
     FirebaseAuth mAuth;
     FirebaseUser currentUser;
-    DrawerLayout drawer;
+    public DrawerLayout drawer;
     FirebaseFirestore mDb;
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
     private UserRepo userRepo;
+    public Toolbar toolbar;
+    public NavigationView navigationView;
 
 
     @Override
@@ -99,7 +101,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         SharedPreferences prefs = getSharedPreferences("prefs", MODE_PRIVATE);
         boolean firstStart = prefs.getBoolean("firstStart", true);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getUsers();
 
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences.Editor editor = preferences.edit();
             editor.putString(CURRENT_USER_KEY, currentUser.getUid());
-            editor.putString(CURRENT_USER_NAME,currentUser.getDisplayName());
+            editor.putString(CURRENT_USER_NAME, currentUser.getDisplayName());
             editor.putString(CURRENT_USER_IMAGE, String.valueOf(currentUser.getPhotoUrl()));
             editor.apply();
 
@@ -133,8 +135,9 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             drawer.addDrawerListener(toggle);
             toggle.syncState();
 
-            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView = findViewById(R.id.nav_view);
             navigationView.setNavigationItemSelectedListener(this);
+
 
             updateNavHeader();
 
@@ -154,13 +157,13 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
     public boolean onCreateOptionsMenu(Menu menu) {
 
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.setting_menu,menu);
+        inflater.inflate(R.menu.setting_menu, menu);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        if(Build.VERSION.SDK_INT > 11) {
+        if (Build.VERSION.SDK_INT > 11) {
             invalidateOptionsMenu();
             menu.findItem(R.id.study_users).setVisible(false);
             menu.findItem(R.id.chat_study).setVisible(false);
@@ -184,7 +187,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             fragmentTransaction.commit();
         }
 
-            return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 
     private void login() {
@@ -206,8 +209,27 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             drawer.closeDrawer(GravityCompat.START);
 
         } else {
-            super.onBackPressed();
-            getSupportActionBar().setTitle("Let's Societyfy");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("QUIT");
+            builder.setMessage("Are you sure you want to quit the app?");
+
+            builder.setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    finishAffinity();
+                }
+            });
+
+            builder.setNegativeButton("Stay", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    dialog.dismiss();
+                }
+            });
+
+            builder.create().show();
         }
     }
 
@@ -221,6 +243,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             getSupportActionBar().setTitle("Let's Societyfy");
             fragment = new HomeFragment();
             fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
 
@@ -228,6 +251,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             getSupportActionBar().setTitle("Profile");
             fragment = new ProfileFragment();
             fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
@@ -236,6 +260,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             getSupportActionBar().setTitle("Settings");
             fragment = new SettingsFragment();
             fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
@@ -251,6 +276,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             fragment.setArguments(bundle);
 
             fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
@@ -262,6 +288,7 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
             currentUser = null;
             fragment = new LoginFragment();
             fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
             getSupportActionBar().hide();
@@ -274,6 +301,10 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         drawer.closeDrawer(GravityCompat.START);
         return true;
 
+    }
+
+    public void setActionBarTitle(String title) {
+        getSupportActionBar().setTitle(title);
     }
 
 
@@ -305,8 +336,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
         locationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()){
-                    if(Objects.requireNonNull(task.getResult()).toObject(UserLocation.class)!= null){
+                if (task.isSuccessful()) {
+                    if (Objects.requireNonNull(task.getResult()).toObject(UserLocation.class) != null) {
                         mUserLocations.add(task.getResult().toObject(UserLocation.class));
                     }
 

@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -36,8 +38,12 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,15 +66,13 @@ public class SettingsFragment extends Fragment {
     private String[] groups;
     private String[][] children;
     private FirebaseFirestore db;
+    private Fragment fragment;
 
-
-    public SettingsFragment() {
-
-    }
+    FragmentTransaction fragmentTransaction;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         groups = new String[]{"About Societyfy"};
 
         children = new String[][]{
@@ -79,6 +83,18 @@ public class SettingsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_settings, container, false);
+
+        ((MainActivity)getActivity()).drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_arrow_back_black_24dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final Intent i = new Intent(getActivity(), MainActivity.class);
+                startActivity(i);
+            }
+        });
 
         preferences = Objects.requireNonNull(getActivity()).getSharedPreferences("User_pref", Context.MODE_PRIVATE);
         editor = preferences.edit();
@@ -246,9 +262,24 @@ public class SettingsFragment extends Fragment {
                                                                 }
                                                             });
 
+                                                    db.collection("Users' Locations").document(currentUser.getUid())
+                                                            .delete()
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void aVoid) {
+                                                                    Log.d(TAG, "DocumentSnapshot successfully deleted!");
+                                                                }
+                                                            })
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    Log.w(TAG, "Error deleting document", e);
+                                                                }
+                                                            });
+
 
                                                     showMessage("Account deleted");
-                                                    getActivity().finish();
+                                                    updateUI();
                                                     setting_pro.setVisibility(View.INVISIBLE);
 
                                                 } else {

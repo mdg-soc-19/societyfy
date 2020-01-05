@@ -130,6 +130,14 @@ public class Hangout_list extends Fragment implements OnMapReadyCallback, View.O
         v.findViewById(R.id.btn_reset_map).setOnClickListener(this);
 
 
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.baseline_emoji_people_white_18dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
         getUsers();
         initUI();
         initGoogleMap(savedInstanceState);

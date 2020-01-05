@@ -127,6 +127,14 @@ public class Play_list extends Fragment implements OnMapReadyCallback, View.OnCl
         v.findViewById(R.id.btn_reset_map).setOnClickListener(this);
 
 
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.baseline_sports_cricket_white_18dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
         getUsers();
         initUI();
         initGoogleMap(savedInstanceState);

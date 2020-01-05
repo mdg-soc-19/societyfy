@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.MainActivity;
 import com.example.societyfy.Activities.PermissionFragment;
 import com.example.societyfy.Activities.models.User;
+import com.example.societyfy.Activities.models.UserLocation;
 import com.example.societyfy.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -40,11 +43,23 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -55,6 +70,7 @@ public class ProfileFragment extends Fragment {
     private final String TAG = "DELETE";
     TextView profile_name;
     TextView profile_mail;
+    TextView profile_address;
     Button update;
     ProgressBar profile_pro;
     FirebaseAuth mAuth;
@@ -67,6 +83,9 @@ public class ProfileFragment extends Fragment {
     public Uri downloadURL;
     private FirebaseStorage mStorage;
     StorageReference storageReference;
+
+
+    private GeoPoint geoPointUser;
 
 
 
@@ -86,9 +105,11 @@ public class ProfileFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+
         profile_pic = v.findViewById(R.id.profile_photo);
         profile_name = v.findViewById(R.id.profile_name);
         profile_mail = v.findViewById(R.id.profile_user_mail);
+        profile_address = v.findViewById(R.id.profile_user_address);
         update = v.findViewById(R.id.update);
         profile_pro = v.findViewById(R.id.profile_progress);
         profile_pro.setVisibility(View.INVISIBLE);
@@ -96,10 +117,12 @@ public class ProfileFragment extends Fragment {
         mStorage = FirebaseStorage.getInstance();
         storageReference = mStorage.getReference();
 
+        getUserPosition();
 
 
         profile_name.setText(currentUser.getDisplayName());
         profile_mail.setText(currentUser.getEmail());
+
         Glide.with(this).load(currentUser.getPhotoUrl()).into(profile_pic);
 
         profile_pic.setOnClickListener(new View.OnClickListener() {
@@ -249,10 +272,63 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    private String getAddressOfUser(GeoPoint geoPoint) {
+        String mAddress = "";
+
+        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(geoPoint.getLatitude(),geoPoint.getLongitude(),1);
+
+            String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+            String city = addresses.get(0).getLocality();
+            String state = addresses.get(0).getAdminArea();
+            String country = addresses.get(0).getCountryName();
+            String postalCode = addresses.get(0).getPostalCode();
+            String knownName = addresses.get(0).getFeatureName(); // Only if available else return NULL
+            String addressOfUser = city + " , " + state + " , " + country + " , " + postalCode + "(" + knownName + ")";
+            profile_address.setText(addressOfUser);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return mAddress;
+    }
+
+    private void getUserPosition(){
+
+        DocumentReference locationRef = db.collection("Users' Locations").document(currentUser.getUid());
+
+        locationRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    if (Objects.requireNonNull(task.getResult()).toObject(UserLocation.class) != null) {
+                        geoPointUser = Objects.requireNonNull(task.getResult().toObject(UserLocation.class)).getGeoPoint();
+                        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+                        try {
+                            List<Address> addresses = geocoder.getFromLocation(geoPointUser.getLatitude(),geoPointUser.getLongitude(),1);
+
+                            String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                            String city = addresses.get(0).getLocality();
+                            String state = addresses.get(0).getAdminArea();
+                            String country = addresses.get(0).getCountryName();
+                            String postalCode = addresses.get(0).getPostalCode();
+                            String knownName = addresses.get(0).getFeatureName();// Only if available else return NULL
+                            String addressOfUser = city + " , " + state + " , " + country + " , " + postalCode + "(" + knownName + ")";
+                            profile_address.setText(addressOfUser);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                }
+
+            }
+        });
 
 
-
-
+    }
 
 }
 

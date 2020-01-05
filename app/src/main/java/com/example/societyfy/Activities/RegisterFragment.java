@@ -192,7 +192,6 @@ public class RegisterFragment extends Fragment {
             fileReference.putFile(pickedImgUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    showMessage("Upload Successful");
                     fileReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                         @Override
                         public void onSuccess(Uri uri) {
@@ -275,6 +274,7 @@ public class RegisterFragment extends Fragment {
 
     private void updateUI() {
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
         fragmentTransaction.replace(R.id.fragment, new PermissionFragment());
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();

@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -60,6 +62,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -71,8 +74,10 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -89,7 +94,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
 
     private static final String TAG = "UserListFragment";
-
 
     private RecyclerView userlist;
     private UserAdapter adapter;
@@ -337,10 +341,10 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     private void setCameraView() {
 
         if (mUserPosition != null) {
-            double bottomBoundary = mUserPosition.getGeoPoint().getLatitude() - .01;
-            double leftBoundary = mUserPosition.getGeoPoint().getLongitude() - .01;
-            double topBoundary = mUserPosition.getGeoPoint().getLatitude() + .01;
-            double rightBoundary = mUserPosition.getGeoPoint().getLongitude() + .01;
+            double bottomBoundary = mUserPosition.getGeoPoint().getLatitude() - .005;
+            double leftBoundary = mUserPosition.getGeoPoint().getLongitude() - .005;
+            double topBoundary = mUserPosition.getGeoPoint().getLatitude() + .005;
+            double rightBoundary = mUserPosition.getGeoPoint().getLongitude() + .005;
 
             mMapBoundary = new LatLngBounds(new LatLng(bottomBoundary, leftBoundary), new LatLng(topBoundary, rightBoundary));
             mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary, 0));
@@ -355,6 +359,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
             }
         }
     }
+
 
     private void initGoogleMap(Bundle savedInstanceState) {
 
@@ -392,15 +397,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
     @Override
     public void onResume() {
-        super.onResume();
         mMapView.onResume();
+        super.onResume();
         startUserLocationsRunnable();
     }
 
     @Override
     public void onStart() {
-        super.onStart();
         mMapView.onStart();
+        super.onStart();
     }
 
     @Override
@@ -441,8 +446,8 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
     @Override
     public void onLowMemory() {
-        super.onLowMemory();
         mMapView.onLowMemory();
+        super.onLowMemory();
     }
 
 
@@ -513,61 +518,61 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     @Override
     public void onInfoWindowClick(final Marker marker) {
 
-            if (marker.getSnippet().equals("This is you")) {
-                marker.hideInfoWindow();
-            } else {
+        if (marker.getSnippet().equals("This is you")) {
+            marker.hideInfoWindow();
+        } else {
 
-                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setMessage(marker.getSnippet())
-                        .setCancelable(true)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                mSelectedMarker = marker;
-                                dialog.dismiss();
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(marker.getSnippet())
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            mSelectedMarker = marker;
+                            dialog.dismiss();
 
-                                final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                                builder.setMessage("Open Google Maps?")
-                                        .setCancelable(true)
-                                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                                String latitude = String.valueOf(marker.getPosition().latitude);
-                                                String longitude = String.valueOf(marker.getPosition().longitude);
-                                                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
-                                                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                                                mapIntent.setPackage("com.google.android.apps.maps");
+                            final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                            builder.setMessage("Open Google Maps?")
+                                    .setCancelable(true)
+                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                            String latitude = String.valueOf(marker.getPosition().latitude);
+                                            String longitude = String.valueOf(marker.getPosition().longitude);
+                                            Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                                            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                                            mapIntent.setPackage("com.google.android.apps.maps");
 
-                                                try{
-                                                    if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-                                                        startActivity(mapIntent);
-                                                    }
-                                                }catch (NullPointerException e){
-                                                    Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
-                                                    Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                                            try{
+                                                if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                                    startActivity(mapIntent);
                                                 }
-
+                                            }catch (NullPointerException e){
+                                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                                                Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
                                             }
-                                        })
-                                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                                final AlertDialog alert = builder.create();
-                                alert.show();
 
-                            }
-                        })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                dialog.cancel();
-                            }
-                        });
-                final AlertDialog alert = builder.create();
-                alert.show();
-            }
+                                        }
+                                    })
+                                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                            final AlertDialog alert = builder.create();
+                            alert.show();
 
-
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.cancel();
+                        }
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
         }
+
+
+    }
 
     @Override
     public void onUserClicked(int position) {
