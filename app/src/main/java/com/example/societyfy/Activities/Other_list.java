@@ -128,6 +128,14 @@ public class Other_list extends Fragment implements OnMapReadyCallback, View.OnC
         v.findViewById(R.id.btn_reset_map).setOnClickListener(this);
 
 
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.baseline_list_alt_white_18dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
         getUsers();
         initUI();
         initGoogleMap(savedInstanceState);

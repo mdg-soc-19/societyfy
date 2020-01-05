@@ -1,11 +1,14 @@
 package com.example.societyfy.Activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -80,6 +83,17 @@ public class PlayFragment extends Fragment {
 
     private ArrayList<UserLocation> mUserLocations = new ArrayList<>();
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ((MainActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ((MainActivity) Objects.requireNonNull(getActivity())).setActionBarTitle("Play Channel");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
 
 
 
@@ -90,18 +104,17 @@ public class PlayFragment extends Fragment {
         v = inflater.inflate(R.layout.fragment_play, container, false);
 
         setHasOptionsMenu(true);
-        back = v.findViewById(R.id.back_play);
         db = FirebaseFirestore.getInstance();
 
+        ((MainActivity)getActivity()).drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-        back.setOnClickListener(new View.OnClickListener() {
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_arrow_back_black_24dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                String id = FirebaseAuth.getInstance().getUid();
-
+                String id2 = FirebaseAuth.getInstance().getUid();
                 CollectionReference Ref = db.collection("Play");
-                Query query = Ref.whereEqualTo("user_id",id);
+                Query query = Ref.whereEqualTo("user_id",id2);
 
                 query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -118,9 +131,8 @@ public class PlayFragment extends Fragment {
                     }
                 });
 
-                fragmentTransaction = getFragmentManager().beginTransaction();
-                fragmentTransaction.replace(R.id.fragment, new HomeFragment());
-                fragmentTransaction.commit();
+                final Intent i = new Intent(getActivity(), MainActivity.class);
+                startActivity(i);
             }
         });
 
@@ -158,6 +170,7 @@ public class PlayFragment extends Fragment {
 
             case R.id.chat_study:
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new PlayFragment());
                 fragmentTransaction.commit();
                 break;
@@ -169,6 +182,7 @@ public class PlayFragment extends Fragment {
                 fragment.setArguments(bundle);
 
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, fragment);
                 fragmentTransaction.commit();
                 break;

@@ -17,12 +17,17 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -74,6 +79,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private FusedLocationProviderClient mFusedLocationClient;
     private UserLocation mUserLocation;
     private FirebaseFirestore mDb;
+    ProgressBar service_pro;
+    TextView note;
+
 
 
     @Override
@@ -90,6 +98,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         food = v.findViewById(R.id.food);
         hangout = v.findViewById(R.id.hangout);
         other = v.findViewById(R.id.other);
+        service_pro = v.findViewById(R.id.servicepro);
+        note = v.findViewById(R.id.note);
+        service_pro.setVisibility(View.VISIBLE);
+        note.setVisibility(View.VISIBLE);
 
         study.setOnClickListener(this);
         play.setOnClickListener(this);
@@ -136,8 +148,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                     }
                 });
 
-                Toast.makeText(getContext(), "Let's Study", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new StudyFragment());
                 fragmentTransaction.commit();
                 break;
@@ -171,8 +183,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 });
 
 
-                Toast.makeText(getContext(), "Let's Play", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new PlayFragment());
                 fragmentTransaction.commit();
                 break;
@@ -205,8 +217,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 });
 
 
-                Toast.makeText(getContext(), "Let's Eat", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new FoodFragment());
                 fragmentTransaction.commit();
                 break;
@@ -239,8 +251,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 });
 
 
-                Toast.makeText(getContext(), "Let's Hangout", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new HangoutFragment());
                 fragmentTransaction.commit();
                 break;
@@ -273,8 +285,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 });
 
 
-                Toast.makeText(getContext(), "Let's Try Out Something New", Toast.LENGTH_SHORT).show();
                 fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
                 fragmentTransaction.replace(R.id.fragment, new OtherFragment());
                 fragmentTransaction.commit();
                 break;
@@ -302,8 +314,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
 
                 Objects.requireNonNull(getActivity()).startForegroundService(serviceIntent);
+                service_pro.setVisibility(View.GONE);
+                note.setVisibility(View.GONE);
             }else{
                 Objects.requireNonNull(getActivity()).startService(serviceIntent);
+                service_pro.setVisibility(View.GONE);
+                note.setVisibility(View.GONE);
             }
         }
     }
@@ -313,10 +329,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
             if("com.example.societyfy.Activities.Services".equals(service.service.getClassName())) {
                 Log.d("Service", "isLocationServiceRunning: location service is already running.");
+                service_pro.setVisibility(View.GONE);
+                note.setVisibility(View.GONE);
                 return true;
             }
         }
         Log.d("Service", "isLocationServiceRunning: location service is not running.");
+        service_pro.setVisibility(View.VISIBLE);
+        note.setVisibility(View.VISIBLE);
         return false;
     }
 
@@ -467,7 +487,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-            showMessage("Welcome to Societyfy!!!");
             getUserDetails();
 
         } else {
@@ -484,7 +503,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if (mLocationPermissionGranted) {
-                    showMessage("Enjoy the app");
                     getUserDetails();
                 } else {
                     getLocationPermission();
@@ -494,14 +512,5 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
 
     }
-
-    private void showMessage(String message) {
-
-        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-
-    }
-
-
-
 
 }

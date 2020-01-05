@@ -131,6 +131,13 @@ public class Study_list extends Fragment implements OnMapReadyCallback, View.OnC
         v.findViewById(R.id.btn_full_screen_map).setOnClickListener(this);
         v.findViewById(R.id.btn_reset_map).setOnClickListener(this);
 
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_local_library_black_24dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
         getUsers();
         initUI();

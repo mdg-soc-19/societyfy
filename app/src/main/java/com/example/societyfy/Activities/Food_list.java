@@ -100,6 +100,7 @@ public class Food_list extends Fragment implements OnMapReadyCallback, View.OnCl
     private ArrayList<Marker> mTripMarkers = new ArrayList<>();
     FragmentTransaction fragmentTransaction;
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +129,14 @@ public class Food_list extends Fragment implements OnMapReadyCallback, View.OnCl
 
         userRepo = new UserRepo(FirebaseFirestore.getInstance());
 
+
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.baseline_fastfood_white_18dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
         getUsers();
         initUI();

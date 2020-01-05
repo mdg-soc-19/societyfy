@@ -19,6 +19,7 @@
     android:layout_width="match_parent"
     android:background="@drawable/gradient"
     android:layout_height="match_parent"
+    android:scrollbars="vertical"
     tools:context=".Activities.RegisterActivity"
     tools:ignore="ExtraText">
 
@@ -93,7 +94,7 @@
     <EditText
         android:textColorHint="#8f909c"
         android:background="@drawable/reg_edittext_style"
-        android:hint="Password                                             (mixture of numbers and letters)"
+        android:hint="Password"
         android:id="@+id/regPwd"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
