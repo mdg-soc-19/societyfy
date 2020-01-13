@@ -35,6 +35,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.Adapters.UserAdapter;
+import com.example.societyfy.Activities.Fragments.HelpFragment;
 import com.example.societyfy.Activities.Fragments.HomeFragment;
 import com.example.societyfy.Activities.Fragments.ProfileFragment;
 import com.example.societyfy.Activities.Fragments.SettingsFragment;
@@ -253,7 +254,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
-            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
 
         } else if (id == R.id.nav_settings) {
@@ -262,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
-            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
 
 
@@ -278,7 +277,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
             fragmentTransaction.replace(R.id.fragment, fragment);
-            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+
+
+        }  else if (id == R.id.nav_help) {
+            getSupportActionBar().setTitle("Help");
+
+
+            fragment = new HelpFragment();
+            fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
+            fragmentTransaction.replace(R.id.fragment, fragment);
             fragmentTransaction.commit();
 
 

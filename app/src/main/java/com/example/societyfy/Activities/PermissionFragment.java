@@ -41,6 +41,10 @@ public class PermissionFragment extends Fragment {
                 nobtn.setVisibility(View.INVISIBLE);
                 Toast.makeText(getContext(), "Please grant PERMISSION!!!", Toast.LENGTH_LONG).show();
                 nobtn.setVisibility(View.VISIBLE);
+                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left, R.anim.enter_from_left, R.anim.exit_to_right);
+                fragmentTransaction.replace(R.id.fragment, new PermissionFragment());
+                fragmentTransaction.commit();
 
             }
         });

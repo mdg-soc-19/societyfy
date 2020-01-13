@@ -15,6 +15,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +32,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.societyfy.Activities.Adapters.UserAdapter;
+import com.example.societyfy.Activities.MainActivity;
 import com.example.societyfy.Activities.ViewWeightAnimationWrapper;
 import com.example.societyfy.Activities.models.ClusterMarker;
 import com.example.societyfy.Activities.models.PolyLineData;
@@ -128,6 +130,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((MainActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         if (mUserLocations.size() == 0) { // make sure the list doesn't duplicate by navigating back
             if (getArguments() != null) {
 
@@ -142,6 +145,18 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         v = inflater.inflate(R.layout.fragment_user_list, container, false);
+
+        ((MainActivity)getActivity()).drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        ((MainActivity)getActivity()).toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_arrow_back_black_24dp));
+        ((MainActivity)getActivity()).toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final Intent i = new Intent(getActivity(), MainActivity.class);
+                startActivity(i);
+            }
+        });
 
         mMapView = (MapView) v.findViewById(R.id.map);
         mMapContainer = v.findViewById(R.id.map_container);

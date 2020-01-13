@@ -45,6 +45,8 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import org.w3c.dom.Document;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,7 +78,9 @@ public class SettingsFragment extends Fragment {
         groups = new String[]{"About Societyfy"};
 
         children = new String[][]{
-                {"Created by Jitesh Jain.", "Aimed at providing people the opportunity to meet others with similar interests near them.", "Important contributions from Arnesh Agrawal and Prateek Sachan."},
+                {"Created by Jitesh Jain.",
+                        "Aimed at providing people the opportunity to meet others with similar interests around them.",
+                        "Important contributions from Arnesh Agrawal and Prateek Sachan."},
         };
     }
 
@@ -247,33 +251,22 @@ public class SettingsFragment extends Fragment {
                                             public void onComplete(@NonNull Task<Void> task) {
                                                 if (task.isSuccessful()) {
 
-                                                    db.collection("Users").document(currentUser.getUid())
-                                                            .delete()
-                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+
+                                                    DocumentReference reference = db.collection("Users").document(currentUser.getUid());
+
+                                                            reference.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                 @Override
-                                                                public void onSuccess(Void aVoid) {
-                                                                    Log.d(TAG, "DocumentSnapshot successfully deleted!");
-                                                                }
-                                                            })
-                                                            .addOnFailureListener(new OnFailureListener() {
-                                                                @Override
-                                                                public void onFailure(@NonNull Exception e) {
-                                                                    Log.w(TAG, "Error deleting document", e);
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    Log.d(TAG,"Deleted");
                                                                 }
                                                             });
 
-                                                    db.collection("Users' Locations").document(currentUser.getUid())
-                                                            .delete()
-                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    DocumentReference reference1 =  db.collection("Users' Locations").document(currentUser.getUid()) ;
+                                                    reference1.delete()
+                                                            .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                                 @Override
-                                                                public void onSuccess(Void aVoid) {
-                                                                    Log.d(TAG, "DocumentSnapshot successfully deleted!");
-                                                                }
-                                                            })
-                                                            .addOnFailureListener(new OnFailureListener() {
-                                                                @Override
-                                                                public void onFailure(@NonNull Exception e) {
-                                                                    Log.w(TAG, "Error deleting document", e);
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    Log.d(TAG,"Deleted");
                                                                 }
                                                             });
 
