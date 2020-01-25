@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+def Google_APi_Key = '"'+google_maps_api_key+'"'?:'"Define api key"';
+def STRING = 'String'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
@@ -16,7 +19,15 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        each {type ->
+            type.buildConfigField STRING, "google_maps_api_key", Google_APi_Key
+        }
+        manifestPlaceholders =[
+                            Google_Api : Google_APi_Key
+        ]
     }
+
     buildTypes {
         release {
             minifyEnabled false

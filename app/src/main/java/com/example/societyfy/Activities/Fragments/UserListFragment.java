@@ -40,6 +40,7 @@ import com.example.societyfy.Activities.models.User;
 import com.example.societyfy.Activities.models.UserLocation;
 import com.example.societyfy.Activities.models.UserRepo;
 import com.example.societyfy.Activities.util.MyClusterManagerRenderer;
+import com.example.societyfy.BuildConfig;
 import com.example.societyfy.R;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
@@ -392,7 +393,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback, Vi
 
         if (mGeoApiContext == null) {
             mGeoApiContext = new GeoApiContext.Builder()
-                    .apiKey(getString(R.string.google_maps_api_key))
+                    .apiKey(getString(Integer.parseInt(BuildConfig.google_maps_api_key)))
                     .build();
         }
     }

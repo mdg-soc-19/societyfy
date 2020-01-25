@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">SOCIETYFY</string>
-    <string name="google_maps_api_key">AIzaSyD-S4C5umBxAEwdLUA0u2BAQKYhM9I-0Dc</string>
     <string name="title_activity_home">Home</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
